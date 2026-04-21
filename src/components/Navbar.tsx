@@ -56,6 +56,11 @@ export const Navbar = () => {
         </nav>
 
         <div className="hidden md:flex items-center gap-3">
+          <Link to="/contact">
+            <Button variant="neon" size="sm" className="gap-1.5">
+              Let's Talk
+            </Button>
+          </Link>
           {user ? (
             <>
               {isAdmin && (
@@ -67,7 +72,7 @@ export const Navbar = () => {
             </>
           ) : (
             <Link to="/auth">
-              <Button variant="neon" size="sm">Sign in</Button>
+              <Button variant="ghost" size="sm">Sign in</Button>
             </Link>
           )}
         </div>
