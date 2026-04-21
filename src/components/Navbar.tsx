@@ -9,6 +9,7 @@ const links = [
   { to: "/", label: "Home" },
   { to: "/portfolio", label: "Work" },
   { to: "/blog", label: "Blog" },
+  { to: "/contact", label: "Contact" },
 ];
 
 export const Navbar = () => {
