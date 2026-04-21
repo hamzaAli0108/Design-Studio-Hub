@@ -103,6 +103,9 @@ export const Navbar = () => {
                 {link.label}
               </Link>
             ))}
+            <Link to="/contact" onClick={() => setOpen(false)}>
+              <Button variant="neon" size="sm" className="w-full">Let's Talk</Button>
+            </Link>
             {user ? (
               <>
                 {isAdmin && (
@@ -114,7 +117,7 @@ export const Navbar = () => {
               </>
             ) : (
               <Link to="/auth" onClick={() => setOpen(false)}>
-                <Button variant="neon" size="sm" className="w-full">Sign in</Button>
+                <Button variant="ghost" size="sm" className="w-full">Sign in</Button>
               </Link>
             )}
           </div>
