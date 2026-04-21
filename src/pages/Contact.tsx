@@ -7,7 +7,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
 const schema = z.object({
@@ -42,16 +41,36 @@ const Contact = () => {
 
     setLoading(true);
     try {
-      const { error } = await supabase.functions.invoke("send-contact-email", {
-        body: parsed.data,
-      });
-      if (error) throw error;
+      const publishableKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
+      const response = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/send-contact-email`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            apikey: publishableKey,
+          },
+          body: JSON.stringify(parsed.data),
+        },
+      );
+
+      if (!response.ok) {
+        let message = "Couldn't send message. Please try again.";
+        try {
+          const data = await response.json();
+          message = data?.message || data?.error || message;
+        } catch {
+          // Ignore response parsing errors and keep the generic message.
+        }
+        throw new Error(message);
+      }
+
       toast.success("Message sent! I'll get back to you soon.");
       setSent({ name: parsed.data.full_name, email: parsed.data.email });
       setForm({ full_name: "", email: "", message: "" });
     } catch (err) {
       console.error(err);
-      toast.error("Couldn't send message. Please try again.");
+      toast.error(err instanceof Error ? err.message : "Couldn't send message. Please try again.");
     } finally {
       setLoading(false);
     }
