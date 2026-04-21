@@ -1,9 +1,9 @@
 import { useEffect, useState, useMemo } from "react";
+import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { ExternalLink } from "lucide-react";
 import { Layout } from "@/components/Layout";
 import { supabase } from "@/integrations/supabase/client";
-import { Button } from "@/components/ui/button";
 
 interface Item {
   id: string;
@@ -95,41 +95,44 @@ const Portfolio = () => {
                   transition={{ duration: 0.4, delay: i * 0.05 }}
                   className="group relative rounded-xl overflow-hidden border border-border hover:border-primary transition-all duration-500"
                 >
-                  <div className="aspect-[4/5] overflow-hidden bg-muted">
-                    {item.cover_image_url ? (
-                      <img
-                        src={item.cover_image_url}
-                        alt={item.title}
-                        loading="lazy"
-                        className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
-                      />
-                    ) : (
-                      <div className="w-full h-full bg-gradient-violet" />
-                    )}
-                  </div>
-                  <div className="absolute inset-0 bg-gradient-to-t from-background via-background/30 to-transparent opacity-95" />
-                  <div className="absolute inset-x-0 bottom-0 p-5">
-                    {item.category && (
-                      <p className="font-mono text-xs text-primary mb-2">{item.category}</p>
-                    )}
-                    <div className="flex items-start justify-between gap-3">
-                      <h3 className="font-display text-xl font-bold">{item.title}</h3>
-                      {item.external_url && (
-                        <a
-                          href={item.external_url}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="p-1.5 rounded-md border border-border hover:border-primary hover:text-primary transition-colors"
-                          aria-label={`Open ${item.title}`}
-                        >
-                          <ExternalLink className="w-3.5 h-3.5" />
-                        </a>
+                  <Link to={`/portfolio/${item.slug}`} className="block">
+                    <div className="aspect-[4/5] overflow-hidden bg-muted">
+                      {item.cover_image_url ? (
+                        <img
+                          src={item.cover_image_url}
+                          alt={item.title}
+                          loading="lazy"
+                          className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
+                        />
+                      ) : (
+                        <div className="w-full h-full bg-gradient-violet" />
                       )}
                     </div>
-                    {item.description && (
-                      <p className="text-sm text-muted-foreground line-clamp-2 mt-2">{item.description}</p>
-                    )}
-                  </div>
+                    <div className="absolute inset-0 bg-gradient-to-t from-background via-background/30 to-transparent opacity-95 pointer-events-none" />
+                    <div className="absolute inset-x-0 bottom-0 p-5">
+                      {item.category && (
+                        <p className="font-mono text-xs text-primary mb-2">{item.category}</p>
+                      )}
+                      <div className="flex items-start justify-between gap-3">
+                        <h3 className="font-display text-xl font-bold">{item.title}</h3>
+                        {item.external_url && (
+                          <span
+                            onClick={(e) => {
+                              e.preventDefault();
+                              window.open(item.external_url!, "_blank", "noopener,noreferrer");
+                            }}
+                            className="p-1.5 rounded-md border border-border hover:border-primary hover:text-primary transition-colors cursor-pointer"
+                            aria-label={`Open ${item.title}`}
+                          >
+                            <ExternalLink className="w-3.5 h-3.5" />
+                          </span>
+                        )}
+                      </div>
+                      {item.description && (
+                        <p className="text-sm text-muted-foreground line-clamp-2 mt-2">{item.description}</p>
+                      )}
+                    </div>
+                  </Link>
                 </motion.article>
               ))}
         </div>
