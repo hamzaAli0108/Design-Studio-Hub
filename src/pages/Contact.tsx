@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import { Send, Mail, MessageSquare, ArrowUpRight } from "lucide-react";
+import { Mail, MessageSquare, ArrowUpRight, CheckCircle2, Clock, RefreshCw } from "lucide-react";
 import { z } from "zod";
 import { Layout } from "@/components/Layout";
 import { Button } from "@/components/ui/button";
@@ -20,6 +20,7 @@ const Contact = () => {
   const [form, setForm] = useState({ full_name: "", email: "", message: "" });
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [sent, setSent] = useState<{ name: string; email: string } | null>(null);
 
   useEffect(() => {
     document.title = "Let's Talk — studio.nx";
@@ -46,6 +47,7 @@ const Contact = () => {
       });
       if (error) throw error;
       toast.success("Message sent! I'll get back to you soon.");
+      setSent({ name: parsed.data.full_name, email: parsed.data.email });
       setForm({ full_name: "", email: "", message: "" });
     } catch (err) {
       console.error(err);
@@ -96,73 +98,132 @@ const Contact = () => {
             </div>
           </motion.div>
 
-          {/* Right — form */}
-          <motion.form
-            onSubmit={handleSubmit}
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.15 }}
-            className="relative rounded-2xl border border-border bg-card/40 backdrop-blur-sm p-6 md:p-8 noise"
-          >
-            <div className="absolute -inset-px rounded-2xl bg-gradient-neon opacity-20 -z-10 blur-xl" />
+          {/* Right — form or success */}
+          {sent ? (
+            <motion.div
+              key="success"
+              initial={{ opacity: 0, scale: 0.96, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              transition={{ duration: 0.5, ease: "easeOut" }}
+              className="relative rounded-2xl border border-primary/40 bg-card/40 backdrop-blur-sm p-8 md:p-10 noise overflow-hidden"
+            >
+              <div className="absolute -inset-px rounded-2xl bg-gradient-neon opacity-30 -z-10 blur-2xl" />
 
-            <div className="space-y-5">
-              <div>
-                <Label htmlFor="full_name" className="text-sm font-medium">Full name</Label>
-                <Input
-                  id="full_name"
-                  value={form.full_name}
-                  onChange={(e) => setForm({ ...form, full_name: e.target.value })}
-                  placeholder="ex., Basit"
-                  maxLength={100}
-                  className="mt-2 bg-background/50 border-border focus-visible:ring-primary"
-                />
-                {errors.full_name && <p className="text-xs text-destructive mt-1">{errors.full_name}</p>}
-              </div>
-
-              <div>
-                <Label htmlFor="email" className="text-sm font-medium">Email address</Label>
-                <Input
-                  id="email"
-                  type="email"
-                  value={form.email}
-                  onChange={(e) => setForm({ ...form, email: e.target.value })}
-                  placeholder="ex., basit@gmail.com"
-                  maxLength={255}
-                  className="mt-2 bg-background/50 border-border focus-visible:ring-primary"
-                />
-                {errors.email && <p className="text-xs text-destructive mt-1">{errors.email}</p>}
-              </div>
-
-              <div>
-                <Label htmlFor="message" className="text-sm font-medium">Your message</Label>
-                <Textarea
-                  id="message"
-                  value={form.message}
-                  onChange={(e) => setForm({ ...form, message: e.target.value })}
-                  placeholder="Share your thoughts or inquiries..."
-                  rows={6}
-                  maxLength={5000}
-                  className="mt-2 bg-background/50 border-border focus-visible:ring-primary resize-none"
-                />
-                {errors.message && <p className="text-xs text-destructive mt-1">{errors.message}</p>}
-                <p className="text-xs text-muted-foreground mt-1 text-right">
-                  {form.message.length}/5000
-                </p>
-              </div>
-
-              <Button
-                type="submit"
-                variant="neon"
-                size="xl"
-                disabled={loading}
-                className="w-full gap-2"
+              <motion.div
+                initial={{ scale: 0, rotate: -180 }}
+                animate={{ scale: 1, rotate: 0 }}
+                transition={{ delay: 0.15, type: "spring", stiffness: 200, damping: 15 }}
+                className="w-16 h-16 grid place-items-center rounded-2xl bg-primary/15 text-primary mb-6 glow-soft"
               >
-                {loading ? "Sending..." : "Send Message"}
-                <ArrowUpRight className="w-4 h-4" />
-              </Button>
-            </div>
-          </motion.form>
+                <CheckCircle2 className="w-8 h-8" strokeWidth={2.5} />
+              </motion.div>
+
+              <h2 className="font-display text-3xl md:text-4xl font-bold leading-tight">
+                Message <span className="text-gradient">delivered</span>.
+              </h2>
+              <p className="mt-3 text-muted-foreground">
+                Thanks, <span className="text-foreground font-medium">{sent.name}</span> — your message
+                landed safely. A confirmation copy is on its way to{" "}
+                <span className="text-foreground font-medium">{sent.email}</span>.
+              </p>
+
+              <div className="mt-6 flex items-center gap-3 p-4 rounded-xl border border-border bg-background/40">
+                <div className="w-10 h-10 grid place-items-center rounded-lg bg-secondary/10 text-secondary shrink-0">
+                  <Clock className="w-5 h-5" />
+                </div>
+                <div>
+                  <p className="font-mono text-xs text-muted-foreground">Estimated reply</p>
+                  <p className="font-medium text-sm">Within 24 hours · Mon–Fri</p>
+                </div>
+              </div>
+
+              <div className="mt-8 flex flex-wrap gap-3">
+                <Button
+                  variant="neon-outline"
+                  size="lg"
+                  onClick={() => setSent(null)}
+                  className="gap-2"
+                >
+                  <RefreshCw className="w-4 h-4" />
+                  Send another message
+                </Button>
+                <a href="/portfolio">
+                  <Button variant="ghost" size="lg" className="gap-1.5">
+                    Browse work
+                    <ArrowUpRight className="w-4 h-4" />
+                  </Button>
+                </a>
+              </div>
+            </motion.div>
+          ) : (
+            <motion.form
+              key="form"
+              onSubmit={handleSubmit}
+              initial={{ opacity: 0, y: 30 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.15 }}
+              className="relative rounded-2xl border border-border bg-card/40 backdrop-blur-sm p-6 md:p-8 noise"
+            >
+              <div className="absolute -inset-px rounded-2xl bg-gradient-neon opacity-20 -z-10 blur-xl" />
+
+              <div className="space-y-5">
+                <div>
+                  <Label htmlFor="full_name" className="text-sm font-medium">Full name</Label>
+                  <Input
+                    id="full_name"
+                    value={form.full_name}
+                    onChange={(e) => setForm({ ...form, full_name: e.target.value })}
+                    placeholder="ex., Basit"
+                    maxLength={100}
+                    className="mt-2 bg-background/50 border-border focus-visible:ring-primary"
+                  />
+                  {errors.full_name && <p className="text-xs text-destructive mt-1">{errors.full_name}</p>}
+                </div>
+
+                <div>
+                  <Label htmlFor="email" className="text-sm font-medium">Email address</Label>
+                  <Input
+                    id="email"
+                    type="email"
+                    value={form.email}
+                    onChange={(e) => setForm({ ...form, email: e.target.value })}
+                    placeholder="ex., basit@gmail.com"
+                    maxLength={255}
+                    className="mt-2 bg-background/50 border-border focus-visible:ring-primary"
+                  />
+                  {errors.email && <p className="text-xs text-destructive mt-1">{errors.email}</p>}
+                </div>
+
+                <div>
+                  <Label htmlFor="message" className="text-sm font-medium">Your message</Label>
+                  <Textarea
+                    id="message"
+                    value={form.message}
+                    onChange={(e) => setForm({ ...form, message: e.target.value })}
+                    placeholder="Share your thoughts or inquiries..."
+                    rows={6}
+                    maxLength={5000}
+                    className="mt-2 bg-background/50 border-border focus-visible:ring-primary resize-none"
+                  />
+                  {errors.message && <p className="text-xs text-destructive mt-1">{errors.message}</p>}
+                  <p className="text-xs text-muted-foreground mt-1 text-right">
+                    {form.message.length}/5000
+                  </p>
+                </div>
+
+                <Button
+                  type="submit"
+                  variant="neon"
+                  size="xl"
+                  disabled={loading}
+                  className="w-full gap-2"
+                >
+                  {loading ? "Sending..." : "Send Message"}
+                  <ArrowUpRight className="w-4 h-4" />
+                </Button>
+              </div>
+            </motion.form>
+          )}
         </div>
       </section>
     </Layout>
