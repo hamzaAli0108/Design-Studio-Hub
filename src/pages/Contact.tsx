@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import { Send, Mail, MessageSquare, ArrowUpRight } from "lucide-react";
+import { Mail, MessageSquare, ArrowUpRight, CheckCircle2, Clock, RefreshCw } from "lucide-react";
 import { z } from "zod";
 import { Layout } from "@/components/Layout";
 import { Button } from "@/components/ui/button";
@@ -20,6 +20,7 @@ const Contact = () => {
   const [form, setForm] = useState({ full_name: "", email: "", message: "" });
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [sent, setSent] = useState<{ name: string; email: string } | null>(null);
 
   useEffect(() => {
     document.title = "Let's Talk — studio.nx";
@@ -46,6 +47,7 @@ const Contact = () => {
       });
       if (error) throw error;
       toast.success("Message sent! I'll get back to you soon.");
+      setSent({ name: parsed.data.full_name, email: parsed.data.email });
       setForm({ full_name: "", email: "", message: "" });
     } catch (err) {
       console.error(err);
