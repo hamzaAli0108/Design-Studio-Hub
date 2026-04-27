@@ -4,6 +4,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
 import { Menu, X } from "lucide-react";
+import { ThemeCustomizer } from "@/components/theme/ThemeCustomizer";
 
 const links = [
   { to: "/", label: "Home" },
@@ -56,6 +57,7 @@ export const Navbar = () => {
         </nav>
 
         <div className="hidden md:flex items-center gap-3">
+          <ThemeCustomizer />
           <Link to="/contact">
             <Button variant="neon" size="sm" className="gap-1.5">
               Let's Talk
@@ -77,13 +79,16 @@ export const Navbar = () => {
           )}
         </div>
 
-        <button
-          className="md:hidden p-2"
-          onClick={() => setOpen(!open)}
-          aria-label="Toggle menu"
-        >
-          {open ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
-        </button>
+        <div className="md:hidden flex items-center gap-1">
+          <ThemeCustomizer />
+          <button
+            className="p-2"
+            onClick={() => setOpen(!open)}
+            aria-label="Toggle menu"
+          >
+            {open ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+          </button>
+        </div>
       </div>
 
       {open && (
