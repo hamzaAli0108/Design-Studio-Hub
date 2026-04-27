@@ -243,6 +243,30 @@ const Index = () => {
                     <div className="w-full h-full bg-gradient-violet" />
                   )}
                   <div className="absolute inset-0 bg-gradient-to-t from-background via-background/40 to-transparent opacity-90" />
+
+                  {/* Right-side stats: views + likes */}
+                  <div className="absolute top-4 right-4 flex flex-col gap-2 z-10">
+                    <div className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-full bg-background/70 backdrop-blur border border-border text-xs font-mono">
+                      <Eye className="w-3.5 h-3.5 text-primary" />
+                      <span>{item.views_count.toLocaleString()}</span>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={(e) => handleLike(e, item.id)}
+                      aria-label={liked.has(item.id) ? "Liked" : "Like project"}
+                      className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-full backdrop-blur border text-xs font-mono transition-all ${
+                        liked.has(item.id)
+                          ? "bg-secondary/20 border-secondary text-secondary"
+                          : "bg-background/70 border-border hover:border-secondary hover:text-secondary"
+                      }`}
+                    >
+                      <Heart
+                        className={`w-3.5 h-3.5 transition-transform ${liked.has(item.id) ? "fill-current scale-110" : ""}`}
+                      />
+                      <span>{item.likes_count.toLocaleString()}</span>
+                    </button>
+                  </div>
+
                   <div className="absolute inset-x-0 bottom-0 p-6">
                     {item.category && (
                       <p className="font-mono text-xs text-primary mb-2">{item.category}</p>
