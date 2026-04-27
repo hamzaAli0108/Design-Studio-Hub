@@ -8,7 +8,9 @@
    All colors HSL. Electric cyan + hot magenta on deep void black. */
 
 @layer base {
-  :root {
+  :root,
+  .dark {
+    color-scheme: dark;
     --background: 240 10% 4%;
     --foreground: 180 20% 96%;
 
