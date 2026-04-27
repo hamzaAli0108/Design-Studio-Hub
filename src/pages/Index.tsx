@@ -39,17 +39,44 @@ interface BlogPost {
 const Index = () => {
   const [featured, setFeatured] = useState<PortfolioItem[]>([]);
   const [posts, setPosts] = useState<BlogPost[]>([]);
+  const [liked, setLiked] = useState<Set<string>>(() =>
+    typeof window !== "undefined" ? getSet(LIKES_KEY, localStorage) : new Set()
+  );
 
   useEffect(() => {
     document.title = "studio.nx — Graphic Designer Portfolio";
 
     supabase
       .from("portfolio_items")
-      .select("id,title,slug,category,cover_image_url")
+      .select("id,title,slug,category,cover_image_url,views_count,likes_count")
       .eq("featured", true)
       .order("created_at", { ascending: false })
       .limit(4)
-      .then(({ data }) => setFeatured(data ?? []));
+      .then(({ data }) => {
+        const items = (data ?? []) as PortfolioItem[];
+        setFeatured(items);
+
+        // Increment view once per browser session per item
+        const viewed = getSet(VIEWS_KEY, sessionStorage);
+        const fresh = items.filter((it) => !viewed.has(it.id));
+        if (fresh.length === 0) return;
+        fresh.forEach((it) => viewed.add(it.id));
+        saveSet(VIEWS_KEY, viewed, sessionStorage);
+        Promise.all(
+          fresh.map((it) =>
+            supabase
+              .rpc("increment_portfolio_view", { _id: it.id })
+              .then(({ data: c }) => ({ id: it.id, c }))
+          )
+        ).then((results) => {
+          setFeatured((curr) =>
+            curr.map((it) => {
+              const r = results.find((x) => x.id === it.id);
+              return r && typeof r.c === "number" ? { ...it, views_count: r.c } : it;
+            })
+          );
+        });
+      });
 
     supabase
       .from("blog_posts")
@@ -59,6 +86,25 @@ const Index = () => {
       .limit(3)
       .then(({ data }) => setPosts(data ?? []));
   }, []);
+
+  const handleLike = async (e: React.MouseEvent, id: string) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (liked.has(id)) return;
+    const next = new Set(liked);
+    next.add(id);
+    setLiked(next);
+    saveSet(LIKES_KEY, next, localStorage);
+    setFeatured((curr) =>
+      curr.map((it) => (it.id === id ? { ...it, likes_count: it.likes_count + 1 } : it))
+    );
+    const { data, error } = await supabase.rpc("increment_portfolio_like", { _id: id });
+    if (!error && typeof data === "number") {
+      setFeatured((curr) =>
+        curr.map((it) => (it.id === id ? { ...it, likes_count: data } : it))
+      );
+    }
+  };
 
   return (
     <Layout>
