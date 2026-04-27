@@ -97,9 +97,11 @@ export type Database = {
           featured: boolean
           gallery: Json | null
           id: string
+          likes_count: number
           slug: string
           title: string
           updated_at: string
+          views_count: number
         }
         Insert: {
           author_id: string
@@ -111,9 +113,11 @@ export type Database = {
           featured?: boolean
           gallery?: Json | null
           id?: string
+          likes_count?: number
           slug: string
           title: string
           updated_at?: string
+          views_count?: number
         }
         Update: {
           author_id?: string
@@ -125,9 +129,11 @@ export type Database = {
           featured?: boolean
           gallery?: Json | null
           id?: string
+          likes_count?: number
           slug?: string
           title?: string
           updated_at?: string
+          views_count?: number
         }
         Relationships: []
       }
@@ -191,6 +197,8 @@ export type Database = {
         }
         Returns: boolean
       }
+      increment_portfolio_like: { Args: { _id: string }; Returns: number }
+      increment_portfolio_view: { Args: { _id: string }; Returns: number }
     }
     Enums: {
       app_role: "admin" | "user"

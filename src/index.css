@@ -8,7 +8,9 @@
    All colors HSL. Electric cyan + hot magenta on deep void black. */
 
 @layer base {
-  :root {
+  :root,
+  .dark {
+    color-scheme: dark;
     --background: 240 10% 4%;
     --foreground: 180 20% 96%;
 
@@ -65,7 +67,52 @@
     --sidebar-accent: 240 8% 12%;
     --sidebar-accent-foreground: 180 20% 96%;
     --sidebar-border: 240 10% 14%;
-    --sidebar-ring: 180 100% 50%;
+  }
+
+  .light {
+    color-scheme: light;
+    --background: 0 0% 100%;
+    --foreground: 240 15% 8%;
+
+    --card: 0 0% 99%;
+    --card-foreground: 240 15% 8%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 240 15% 8%;
+
+    --primary: 180 90% 35%;
+    --primary-foreground: 0 0% 100%;
+    --primary-glow: 180 90% 45%;
+
+    --secondary: 320 85% 50%;
+    --secondary-foreground: 0 0% 100%;
+    --secondary-glow: 320 85% 60%;
+
+    --accent: 270 80% 55%;
+    --accent-foreground: 0 0% 100%;
+
+    --muted: 240 8% 94%;
+    --muted-foreground: 240 5% 40%;
+
+    --destructive: 0 80% 50%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 240 10% 88%;
+    --input: 240 10% 88%;
+    --ring: 180 90% 35%;
+
+    --gradient-radial: radial-gradient(circle at 30% 20%, hsl(var(--primary) / 0.08), transparent 60%),
+                       radial-gradient(circle at 70% 80%, hsl(var(--secondary) / 0.08), transparent 60%);
+    --shadow-card: 0 20px 60px -10px hsl(240 20% 30% / 0.15);
+
+    --sidebar-background: 0 0% 99%;
+    --sidebar-foreground: 240 15% 8%;
+    --sidebar-primary: 180 90% 35%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 240 8% 94%;
+    --sidebar-accent-foreground: 240 15% 8%;
+    --sidebar-border: 240 10% 88%;
+    --sidebar-ring: 180 90% 35%;
   }
 }
 

@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
-import { ArrowRight, Sparkles, Zap } from "lucide-react";
+import { ArrowRight, Sparkles, Zap, Eye, Heart } from "lucide-react";
 import { Layout } from "@/components/Layout";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
@@ -13,7 +13,19 @@ interface PortfolioItem {
   slug: string;
   category: string | null;
   cover_image_url: string | null;
+  views_count: number;
+  likes_count: number;
 }
+
+const LIKES_KEY = "portfolio-liked-v1";
+const VIEWS_KEY = "portfolio-viewed-session-v1";
+
+const getSet = (key: string, storage: Storage): Set<string> => {
+  try { return new Set(JSON.parse(storage.getItem(key) ?? "[]")); } catch { return new Set(); }
+};
+const saveSet = (key: string, set: Set<string>, storage: Storage) => {
+  try { storage.setItem(key, JSON.stringify([...set])); } catch {}
+};
 
 interface BlogPost {
   id: string;
@@ -27,17 +39,44 @@ interface BlogPost {
 const Index = () => {
   const [featured, setFeatured] = useState<PortfolioItem[]>([]);
   const [posts, setPosts] = useState<BlogPost[]>([]);
+  const [liked, setLiked] = useState<Set<string>>(() =>
+    typeof window !== "undefined" ? getSet(LIKES_KEY, localStorage) : new Set()
+  );
 
   useEffect(() => {
     document.title = "studio.nx — Graphic Designer Portfolio";
 
     supabase
       .from("portfolio_items")
-      .select("id,title,slug,category,cover_image_url")
+      .select("id,title,slug,category,cover_image_url,views_count,likes_count")
       .eq("featured", true)
       .order("created_at", { ascending: false })
       .limit(4)
-      .then(({ data }) => setFeatured(data ?? []));
+      .then(({ data }) => {
+        const items = (data ?? []) as PortfolioItem[];
+        setFeatured(items);
+
+        // Increment view once per browser session per item
+        const viewed = getSet(VIEWS_KEY, sessionStorage);
+        const fresh = items.filter((it) => !viewed.has(it.id));
+        if (fresh.length === 0) return;
+        fresh.forEach((it) => viewed.add(it.id));
+        saveSet(VIEWS_KEY, viewed, sessionStorage);
+        Promise.all(
+          fresh.map((it) =>
+            supabase
+              .rpc("increment_portfolio_view", { _id: it.id })
+              .then(({ data: c }) => ({ id: it.id, c }))
+          )
+        ).then((results) => {
+          setFeatured((curr) =>
+            curr.map((it) => {
+              const r = results.find((x) => x.id === it.id);
+              return r && typeof r.c === "number" ? { ...it, views_count: r.c } : it;
+            })
+          );
+        });
+      });
 
     supabase
       .from("blog_posts")
@@ -47,6 +86,25 @@ const Index = () => {
       .limit(3)
       .then(({ data }) => setPosts(data ?? []));
   }, []);
+
+  const handleLike = async (e: React.MouseEvent, id: string) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (liked.has(id)) return;
+    const next = new Set(liked);
+    next.add(id);
+    setLiked(next);
+    saveSet(LIKES_KEY, next, localStorage);
+    setFeatured((curr) =>
+      curr.map((it) => (it.id === id ? { ...it, likes_count: it.likes_count + 1 } : it))
+    );
+    const { data, error } = await supabase.rpc("increment_portfolio_like", { _id: id });
+    if (!error && typeof data === "number") {
+      setFeatured((curr) =>
+        curr.map((it) => (it.id === id ? { ...it, likes_count: data } : it))
+      );
+    }
+  };
 
   return (
     <Layout>
@@ -185,6 +243,30 @@ const Index = () => {
                     <div className="w-full h-full bg-gradient-violet" />
                   )}
                   <div className="absolute inset-0 bg-gradient-to-t from-background via-background/40 to-transparent opacity-90" />
+
+                  {/* Right-side stats: views + likes */}
+                  <div className="absolute top-4 right-4 flex flex-col gap-2 z-10">
+                    <div className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-full bg-background/70 backdrop-blur border border-border text-xs font-mono">
+                      <Eye className="w-3.5 h-3.5 text-primary" />
+                      <span>{item.views_count.toLocaleString()}</span>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={(e) => handleLike(e, item.id)}
+                      aria-label={liked.has(item.id) ? "Liked" : "Like project"}
+                      className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-full backdrop-blur border text-xs font-mono transition-all ${
+                        liked.has(item.id)
+                          ? "bg-secondary/20 border-secondary text-secondary"
+                          : "bg-background/70 border-border hover:border-secondary hover:text-secondary"
+                      }`}
+                    >
+                      <Heart
+                        className={`w-3.5 h-3.5 transition-transform ${liked.has(item.id) ? "fill-current scale-110" : ""}`}
+                      />
+                      <span>{item.likes_count.toLocaleString()}</span>
+                    </button>
+                  </div>
+
                   <div className="absolute inset-x-0 bottom-0 p-6">
                     {item.category && (
                       <p className="font-mono text-xs text-primary mb-2">{item.category}</p>
