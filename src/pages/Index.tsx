@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
-import { ArrowRight, Sparkles, Zap } from "lucide-react";
+import { ArrowRight, Sparkles, Zap, Eye, Heart } from "lucide-react";
 import { Layout } from "@/components/Layout";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
@@ -13,7 +13,19 @@ interface PortfolioItem {
   slug: string;
   category: string | null;
   cover_image_url: string | null;
+  views_count: number;
+  likes_count: number;
 }
+
+const LIKES_KEY = "portfolio-liked-v1";
+const VIEWS_KEY = "portfolio-viewed-session-v1";
+
+const getSet = (key: string, storage: Storage): Set<string> => {
+  try { return new Set(JSON.parse(storage.getItem(key) ?? "[]")); } catch { return new Set(); }
+};
+const saveSet = (key: string, set: Set<string>, storage: Storage) => {
+  try { storage.setItem(key, JSON.stringify([...set])); } catch {}
+};
 
 interface BlogPost {
   id: string;
